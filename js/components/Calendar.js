@@ -39,6 +39,7 @@ class Calendar {
         } else if (this.currentView === 'week') {
             this.currentDate.setDate(this.currentDate.getDate() + (direction * 7));
         } else {
+            // Для дневного вида перемещаемся по одному дню
             this.currentDate.setDate(this.currentDate.getDate() + direction);
         }
         this.render();
@@ -76,7 +77,7 @@ class Calendar {
         };
 
         Object.keys(selects).forEach(selectId => {
-            const select = document.querySelector(`#${selectId}`) || document.querySelector(`.${selectId}`);
+            const select = document.getElementById(selectId);
             if (select) {
                 while (select.children.length > 1) {
                     select.removeChild(select.lastChild);

@@ -1,5 +1,5 @@
 .filters-panel {
-    background: #94D3FF;
+    background: white; /* Белый фон */
     padding: 15px 30px;
     border-radius: 15px;
     margin: 15px 30px;
@@ -8,11 +8,12 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     justify-content: space-between;
+    border: 2px solid #94D3FF; /* Обводка цветом 94D3FF */
 }
 
 .filter-select {
     padding: 8px 12px;
-    border: 1px solid #000000; /* Черная граница */
+    border: 1px solid #000000;
     border-radius: 6px;
     background: #D9D9D9;
     font-size: 14px;
@@ -20,7 +21,7 @@
     min-width: 120px;
     flex: 1;
     max-width: 140px;
-    font-weight: 600; /* Жирный шрифт для всех фильтров */
+    font-weight: 600;
 }
 
 /* Скрываем scrollbar для красоты */

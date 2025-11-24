@@ -16,6 +16,7 @@ class DayView {
         const dayCell = document.createElement('div');
         dayCell.className = 'day-cell-single';
         
+        // Добавляем класс today только если это сегодняшний день
         if (isToday) {
             dayCell.classList.add('today');
         }
@@ -23,59 +24,29 @@ class DayView {
         const dayHeader = document.createElement('div');
         dayHeader.className = 'day-header-single';
         
-        const dayName = document.createElement('div');
-        dayName.className = 'day-name-single';
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'day-name-single';
+        dayNumber.textContent = date.getDate();
         
-        const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-        const months = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
+        const dayWeekday = document.createElement('div');
+        dayWeekday.className = 'day-weekday';
         
-        dayName.textContent = `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+        const days = ['ВОСКРЕСЕНЬЕ', 'ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА', 'ЧЕТВЕРГ', 'ПЯТНИЦА', 'СУББОТА'];
+        dayWeekday.textContent = days[date.getDay()];
         
-        const timeSlots = document.createElement('div');
-        timeSlots.className = 'time-slots';
-        
-        // Создаем временные слоты с 00:00 до 23:00
-        for (let hour = 0; hour < 24; hour++) {
-            const timeSlot = document.createElement('div');
-            timeSlot.className = 'time-slot';
-            
-            const timeLabel = document.createElement('div');
-            timeLabel.className = 'time-label';
-            timeLabel.textContent = `${hour.toString().padStart(2, '0')}:00`;
-            
-            const eventContainer = document.createElement('div');
-            eventContainer.className = 'event-container';
-            
-            // Добавляем пример события
-            if (hour === 10) {
-                const event = document.createElement('div');
-                event.className = 'event';
-                event.textContent = 'Ежедневная планерка';
-                eventContainer.appendChild(event);
-            }
-            
-            if (hour === 14) {
-                const event = document.createElement('div');
-                event.className = 'event';
-                event.textContent = 'Встреча с клиентом';
-                eventContainer.appendChild(event);
-            }
-            
-            if (hour === 16) {
-                const event = document.createElement('div');
-                event.className = 'event';
-                event.textContent = 'Код-ревью';
-                eventContainer.appendChild(event);
-            }
-            
-            timeSlot.appendChild(timeLabel);
-            timeSlot.appendChild(eventContainer);
-            timeSlots.appendChild(timeSlot);
+        // Декоративный элемент
+        const decoration = document.createElement('div');
+        decoration.className = 'day-decoration';
+        if (isToday) {
+            decoration.textContent = 'Сегодня';
+        } else {
+            decoration.textContent = 'Календарь дня';
         }
 
-        dayHeader.appendChild(dayName);
+        dayHeader.appendChild(dayNumber);
+        dayHeader.appendChild(dayWeekday);
         dayCell.appendChild(dayHeader);
-        dayCell.appendChild(timeSlots);
+        dayCell.appendChild(decoration);
         this.dayGrid.appendChild(dayCell);
     }
 
