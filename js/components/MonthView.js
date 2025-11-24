@@ -47,10 +47,9 @@ class MonthView {
         // Создаем дату для этой ячейки
         let cellDate;
         if (isOtherMonth) {
-            // Для дней предыдущего/следующего месяца
-            if (day > 20) { // Предполагаем, что это предыдущий месяц
+            if (day > 20) {
                 cellDate = new Date(currentYear, currentMonth - 1, day);
-            } else { // Следующий месяц
+            } else {
                 cellDate = new Date(currentYear, currentMonth + 1, day);
             }
         } else {

@@ -1,7 +1,7 @@
 class Calendar {
     constructor() {
         this.currentDate = new Date();
-        this.currentView = 'week'; // week, month, day
+        this.currentView = 'week';
         this.periodDisplay = document.querySelector('.period-display');
         this.prevButton = document.querySelector('.prev-button');
         this.nextButton = document.querySelector('.next-button');
@@ -15,6 +15,7 @@ class Calendar {
         
         this.monthView = new MonthView();
         this.weekView = new WeekView();
+        this.dayView = new DayView();
         
         this.init();
     }
@@ -51,12 +52,10 @@ class Calendar {
     changeView(view) {
         this.currentView = view;
         
-        // Обновляем активные кнопки
         this.viewButtons.forEach(button => {
             button.classList.toggle('active', button.dataset.view === view);
         });
         
-        // Показываем соответствующий контейнер
         Object.keys(this.viewContainers).forEach(key => {
             this.viewContainers[key].style.display = key === view ? 'block' : 'none';
         });
@@ -65,7 +64,6 @@ class Calendar {
     }
 
     populateSelects() {
-        // Заполняем выпадающие списки моковыми данными
         const selects = {
             'projectSelect': mockData.projects,
             'subsystemSelect': mockData.subsystems,
@@ -78,9 +76,8 @@ class Calendar {
         };
 
         Object.keys(selects).forEach(selectId => {
-            const select = document.getElementById(selectId);
+            const select = document.querySelector(`#${selectId}`) || document.querySelector(`.${selectId}`);
             if (select) {
-                // Очищаем существующие options кроме первого
                 while (select.children.length > 1) {
                     select.removeChild(select.lastChild);
                 }
@@ -102,8 +99,9 @@ class Calendar {
             this.monthView.render(this.currentDate);
         } else if (this.currentView === 'week') {
             this.weekView.render(this.currentDate);
+        } else if (this.currentView === 'day') {
+            this.dayView.render(this.currentDate);
         }
-        // day view можно добавить позже
     }
 
     updatePeriodDisplay() {
@@ -118,6 +116,14 @@ class Calendar {
         } else if (this.currentView === 'week') {
             const weekRange = this.getWeekRange(this.currentDate);
             this.periodDisplay.textContent = `${weekRange.month} ${weekRange.start}-${weekRange.end}`;
+        } else if (this.currentView === 'day') {
+            const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            const months = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
+            const dayName = days[this.currentDate.getDay()];
+            const day = this.currentDate.getDate();
+            const month = months[this.currentDate.getMonth()];
+            const year = this.currentDate.getFullYear();
+            this.periodDisplay.textContent = `${dayName}, ${day} ${month} ${year}`;
         }
     }
 
