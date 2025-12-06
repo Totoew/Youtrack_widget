@@ -1,9 +1,9 @@
-class MonthView {
+export default class MonthView {
     constructor() {
         this.daysGrid = document.getElementById('daysGrid');
     }
 
-    render(date) {
+    render(date, tasks) {
         this.daysGrid.innerHTML = '';
         
         const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -30,6 +30,8 @@ class MonthView {
         for (let day = 1; day <= nextMonthDays; day++) {
             this.createDayCell(day, true, date);
         }
+
+        this.renderTasks(tasks);
     }
 
     createDayCell(day, isOtherMonth, currentMonthDate) {
@@ -69,17 +71,35 @@ class MonthView {
         
         const dayEvents = document.createElement('div');
         dayEvents.className = 'day-events';
-        
-        // Пример события только для текущего месяца
-        if (day === 15 && !isOtherMonth) {
-            const event = document.createElement('div');
-            event.className = 'event';
-            event.textContent = 'Встреча';
-            dayEvents.appendChild(event);
-        }
 
         dayCell.appendChild(dayNumber);
         dayCell.appendChild(dayEvents);
+        dayCell.dataset.date = cellDate.toLocaleDateString();
         this.daysGrid.appendChild(dayCell);
+    }
+
+    renderTasks(tasks) {
+        const startDate = this.parseDate(this.daysGrid.children[0].dataset.date);
+        const endDate = this.parseDate(this.daysGrid.children[41].dataset.date);
+
+        for (let i = 0; i < tasks.length; i++) {
+            const task = tasks[i];
+            const deadline = task.deadline;
+            if (deadline >= startDate && deadline <= endDate) {
+                const cell = document.querySelector(`[data-date="${deadline.toLocaleDateString()}"]`);
+                const cellEvents = cell.querySelector('.day-events');
+
+                const event = document.createElement('div');
+                event.className = 'event';
+                event.textContent = task.summary;
+                cellEvents.appendChild(event);
+            }
+        }
+    }
+
+    parseDate(dateString) {
+        const [d, m, y] = dateString.split('.');
+        const date = `${m}.${d}.${y}`;
+        return new Date(date);
     }
 }

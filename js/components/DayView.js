@@ -1,18 +1,26 @@
-class DayView {
+export default class DayView {
     constructor() {
         this.dayGrid = document.getElementById('dayGrid');
     }
 
-    render(date) {
+    render(date, tasks) {
         this.dayGrid.innerHTML = '';
         
         const today = new Date();
         const isToday = this.isSameDay(date, today);
+
+        const dayTasks = [];
+        const dateString = date.toLocaleDateString();
+        for (let i = 0; i < tasks.length; i++) {
+            if (tasks[i].deadline.toLocaleDateString() === dateString) {
+                dayTasks.push(tasks[i]);
+            }
+        }
         
-        this.createDayCell(date, isToday);
+        this.createDayCell(date, isToday, dayTasks);
     }
 
-    createDayCell(date, isToday) {
+    createDayCell(date, isToday, dayTasks) {
         const dayCell = document.createElement('div');
         dayCell.className = 'day-cell-single';
         
@@ -41,6 +49,12 @@ class DayView {
             decoration.textContent = 'Сегодня';
         } else {
             decoration.textContent = 'Календарь дня';
+        }
+
+        // Отрисовка событий
+        // Добавить классы для событий, создать div, добавить классы и добавить в контейнер
+        if (dayTasks) {
+
         }
 
         dayHeader.appendChild(dayNumber);

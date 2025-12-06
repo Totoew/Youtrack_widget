@@ -65,9 +65,10 @@ function parseTasks(tasks) {
             let value = customFields.value?.name || customFields.value;
             if (name == 'Затраченное время' && value != null) {
                 value = value.presentation;
+            } else if (name == 'Затраченное время' && value == null) {
+                value = 'Не указано';
             } else if (name == 'Due Date') {
-                const date = new Date(value);
-                value = date.toLocaleString();
+                value = new Date(value);
             }
 
             taskFields[name] = value;
