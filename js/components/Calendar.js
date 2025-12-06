@@ -1,4 +1,9 @@
-class Calendar {
+import { makeProjectsList, makeTaskFieldsList } from "../make-header-lists.js";
+import DayView from './DayView.js';
+import MonthView from './MonthView.js';
+import WeekView from './WeekView.js';
+
+export default class Calendar {
     constructor() {
         this.currentDate = new Date();
         this.currentView = 'week';
@@ -12,15 +17,24 @@ class Calendar {
             week: document.getElementById('weekView'),
             day: document.getElementById('dayView')
         };
+        this.projectSelect = document.querySelector('.project-select');
+        this.filterSelects = document.querySelectorAll('.filter-select');
+        this.selectsHeaders = ['Подсистема', 'Исполнитель', 'Тип', 'Приоритет', 'Состояние', 'Срок', 'Затраченное время'];
         
         this.monthView = new MonthView();
         this.weekView = new WeekView();
         this.dayView = new DayView();
+
+        this.projectNames = null;
+        this.projectShortNames = null;
+        this.projectTasksFields = null;
+        this.allTasks = [];
+        this.filteredTasks = [];
         
         this.init();
     }
 
-    init() {
+    async init() {
         this.prevButton.addEventListener('click', () => this.navigate(-1));
         this.nextButton.addEventListener('click', () => this.navigate(1));
         this.todayButton.addEventListener('click', () => this.goToToday());
@@ -29,7 +43,34 @@ class Calendar {
             button.addEventListener('click', (e) => this.changeView(e.target.dataset.view));
         });
 
-        this.populateSelects();
+        const [projectNames, projectShortNames] = await makeProjectsList();
+        this.projectNames = projectNames;
+        this.projectShortNames = projectShortNames;
+        
+        await this.findTasks(this.projectShortNames[0]);
+        this.populateSelects(false);
+
+        this.filterSelects.forEach(select => {
+            select.addEventListener('change', () => this.filterTasks());
+        });
+
+        this.projectSelect.addEventListener('change', async () => await this.changeProject());
+
+        this.filterTasks();
+        this.render();
+    }
+
+    async findTasks(shortName) {
+        const [tasks, projectTasksFields] = await makeTaskFieldsList(shortName);
+        this.projectTasksFields = projectTasksFields;
+        this.allTasks = tasks;
+    }
+
+    async changeProject() {
+        const value = this.projectSelect.value;
+        await this.findTasks(value);
+        this.populateSelects(true);
+        this.filterTasks();
         this.render();
     }
 
@@ -64,28 +105,33 @@ class Calendar {
         this.render();
     }
 
-    populateSelects() {
+    populateSelects(isProjectChanging) {
         const selects = {
-            'projectSelect': mockData.projects,
-            'subsystemSelect': mockData.subsystems,
-            'executorSelect': mockData.executors,
-            'typeSelect': mockData.types,
-            'prioritySelect': mockData.priorities,
-            'statusSelect': mockData.statuses,
-            'deadlineSelect': mockData.deadlines,
-            'timeSpentSelect': mockData.timeSpent
+            'subsystemSelect': this.projectTasksFields.subsystems,
+            'executorSelect': this.projectTasksFields.executors,
+            'typeSelect': this.projectTasksFields.types,
+            'prioritySelect': this.projectTasksFields.priorities,
+            'statusSelect': this.projectTasksFields.statuses,
+            'deadlineSelect': this.projectTasksFields.deadlines,
+            'timeSpentSelect': this.projectTasksFields.timeSpent
         };
+        if (!isProjectChanging) {
+            selects['projectSelect'] = this.projectNames;
+        }
 
         Object.keys(selects).forEach(selectId => {
             const select = document.getElementById(selectId);
             if (select) {
-                while (select.children.length > 1) {
+                const childrenCount = selectId === 'projectSelect' ? 0 : 1;
+                while (select.children.length > childrenCount) {
                     select.removeChild(select.lastChild);
                 }
                 
                 selects[selectId].forEach(item => {
                     const option = document.createElement('option');
-                    option.value = item;
+                    if (selectId === 'projectSelect') {
+                        option.value = this.projectShortNames[this.projectNames.indexOf(item)];
+                    }
                     option.textContent = item;
                     select.appendChild(option);
                 });
@@ -93,15 +139,41 @@ class Calendar {
         });
     }
 
+    filterTasks() {
+        const filteredFields = {};
+        this.filteredTasks = [];
+
+        this.filterSelects.forEach(select => {
+            if (!this.selectsHeaders.includes(select.value)) {
+                filteredFields[select.id.replace('Select', '')] = select.value;
+            }
+        });
+
+        if (Object.keys(filteredFields).length !== 0) {
+            for (let i = 0; i < this.allTasks.length; i++) {
+                let isFiltersMatching = false;
+                const task = this.allTasks[i];
+                for (const [key, value] of Object.entries(filteredFields)) {
+                    isFiltersMatching = task[key] === value;
+                    if (!isFiltersMatching) break;
+                }
+                if (!isFiltersMatching) continue; 
+                this.filteredTasks.push(task);
+            }
+        } else {
+            this.filteredTasks = this.allTasks;
+        }
+        this.render();
+    }
+
     render() {
         this.updatePeriodDisplay();
-        
         if (this.currentView === 'month') {
-            this.monthView.render(this.currentDate);
+            this.monthView.render(this.currentDate, this.filteredTasks);
         } else if (this.currentView === 'week') {
-            this.weekView.render(this.currentDate);
+            this.weekView.render(this.currentDate, this.filteredTasks);
         } else if (this.currentView === 'day') {
-            this.dayView.render(this.currentDate);
+            this.dayView.render(this.currentDate, this.filteredTasks);
         }
     }
 

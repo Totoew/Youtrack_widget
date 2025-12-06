@@ -1,18 +1,34 @@
-class WeekView {
+export default  class WeekView {
     constructor() {
         this.weekGrid = document.getElementById('weekGrid');
         this.weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     }
 
-    render(date) {
+    render(date, tasks) {
         this.weekGrid.innerHTML = '';
         
         const weekDates = this.getWeekDates(date);
+        const weekDatesLocale = weekDates.map(item => item.toLocaleDateString());
+
+        const weekTasks = {};
+        for (let i = 0; i < tasks.length; i++) {
+            const task = tasks[i];
+            const deadline = task.deadline.toLocaleDateString();
+
+            if (weekDatesLocale.includes(deadline)) {
+                if (!weekTasks[deadline]) {
+                    weekTasks[deadline] = [];
+                }
+
+                weekTasks[deadline].push(task);
+            }
+        }
+
         const today = new Date();
         
         weekDates.forEach((weekDate, index) => {
             const isCurrentDay = this.isSameDay(weekDate, today);
-            this.createWeekDayCell(weekDate, isCurrentDay);
+            this.createWeekDayCell(weekDate, isCurrentDay, weekTasks);
         });
     }
 
@@ -32,7 +48,7 @@ class WeekView {
         return dates;
     }
 
-    createWeekDayCell(date, isCurrentDay) {
+    createWeekDayCell(date, isCurrentDay, weekTasks) {
         const dayCell = document.createElement('div');
         dayCell.className = 'week-day';
         
@@ -54,11 +70,20 @@ class WeekView {
         const dayEvents = document.createElement('div');
         dayEvents.className = 'day-events';
         
-        // Добавляем контент для демонстрации высоты
-        const placeholder = document.createElement('div');
-        placeholder.className = 'day-content';
-        placeholder.textContent = 'События дня';
-        dayEvents.appendChild(placeholder);
+        const dayTasks = weekTasks[date.toLocaleDateString()];
+        if (dayTasks) {
+            for (let i = 0; i < dayTasks.length; i++) {
+                const event = document.createElement('div');
+                event.className = 'event';
+                event.textContent = dayTasks[i].summary;
+                dayEvents.appendChild(event);
+            }
+        } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'day-content';
+            placeholder.textContent = 'События дня';
+            dayEvents.appendChild(placeholder);
+        }
 
         dayHeader.appendChild(dayName);
         dayHeader.appendChild(dayDate);
