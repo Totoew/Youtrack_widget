@@ -154,7 +154,16 @@ export default class Calendar {
                 let isFiltersMatching = false;
                 const task = this.allTasks[i];
                 for (const [key, value] of Object.entries(filteredFields)) {
-                    isFiltersMatching = task[key] === value;
+                    if (key === 'deadline') {
+                        const deadline = task.deadline;
+                        isFiltersMatching = this.filterDeadline(deadline, value);
+                    } else if (key === 'timeSpent') {
+                        const timeSpent = task.timeSpent;
+                        isFiltersMatching = this.filterTimeSpent(timeSpent, value);
+                    }
+                    else {
+                        isFiltersMatching = task[key] === value;
+                    }
                     if (!isFiltersMatching) break;
                 }
                 if (!isFiltersMatching) continue; 
@@ -175,6 +184,72 @@ export default class Calendar {
         } else if (this.currentView === 'day') {
             this.dayView.render(this.currentDate, this.filteredTasks);
         }
+    }
+
+    filterDeadline(deadline, value) {
+        const currentDate = new Date();
+
+        const getWeek = (date) => {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7)); 
+            const yearStart = new Date(d.getFullYear(), 0, 1);
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return `${d.getFullYear()}-W${weekNo}`;
+        };
+
+        let isFilterMatching = false;
+
+        switch (value) {
+            case 'Вышел':
+                isFilterMatching = currentDate.setHours(0, 0, 0, 0) > deadline.setHours(0, 0, 0, 0);
+                break;
+            case 'Сегодня':
+                isFilterMatching = deadline.toLocaleDateString() === currentDate.toLocaleDateString();
+                break;
+            case 'Завтра':
+                isFilterMatching = (Math.abs(currentDate.setHours(0, 0, 0, 0) - deadline.setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)) === 1;
+                break;
+            case 'На этой неделе':
+                isFilterMatching = getWeek(deadline) === getWeek(currentDate);
+                break;
+            case 'На следующей неделе':
+                const deadlineResult = getWeek(deadline).split('W');
+                const currentResult = getWeek(currentDate).split('W');
+                isFilterMatching = deadlineResult[0] === currentResult[0] && Number(currentResult[1]) === Number(deadlineResult[1]) - 1;
+                break;
+            case 'В этом месяце':
+                isFilterMatching = deadline.toLocaleDateString().slice(3) === currentDate.toLocaleDateString().slice(3);
+                break
+            default:
+                break;
+        }
+
+        return isFilterMatching;
+    }
+
+    filterTimeSpent(timeSpent, value) {
+        let isFilterMatching = false;
+        if (value === 'Не указано') {
+            isFilterMatching = timeSpent === null;
+        }
+        else if (timeSpent !== null) {
+            const times = timeSpent.split(' ');
+            let hours = 0;
+            for (let i = 0; i < times.length; i++) {
+                const time = times[i];
+                if (time.includes('н')) hours += Number(time.replace('н', '')) * 40;
+                else if (time.includes('д')) hours += Number(time.replace('д', '')) * 8;
+                else if (time.includes('ч')) hours += Number(time.replace('ч', ''));
+            }
+
+            if (value === 'Меньше суток') isFilterMatching = hours <= 8;
+            else if (value === 'От 1 до 3 дней') isFilterMatching = 8 < hours && hours <= 24;
+            else if (value === 'От 3 до 10 дней') isFilterMatching = 24 < hours && hours < 64;
+            else if (value === 'От 10 дней до месяца') isFilterMatching = 64 < hours && hours <= 160;
+            else if (value === 'Больше месяца') isFilterMatching = 160 < hours;
+        } 
+        return isFilterMatching;
     }
 
     updatePeriodDisplay() {
