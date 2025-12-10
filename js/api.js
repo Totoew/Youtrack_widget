@@ -52,7 +52,7 @@ async function fetchTasks(shortName) {
 function parseTasks(tasks) {
     const tasksLength = tasks.length;
     const tasksFields = [];
-    const fields = ['priority', 'type', 'status', 'executor', 'subsystem', 'timeSpent', 'deadline', 'summary', 'id'];
+    const fields = ['priority', 'type', 'status', 'executor', 'subsystem', 'timeSpent', 'startDate', 'deadline', 'summary', 'id'];
 
     for (let i = 0; i < tasksLength; i++) {
         const task = tasks[i];
@@ -63,10 +63,9 @@ function parseTasks(tasks) {
             const customFields = task.customFields[j];
             let name = customFields.projectCustomField.field.name;
             let value = customFields.value?.name || customFields.value;
+
             if (name == 'Затраченное время' && value != null) {
                 value = value.presentation;
-            } else if (name == 'Затраченное время' && value == null) {
-                value = 'Не указано';
             } else if (name == 'Due Date') {
                 value = new Date(value);
             }
