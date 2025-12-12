@@ -1,4 +1,4 @@
-export default  class WeekView {
+export default class WeekView {
     constructor() {
         this.weekGrid = document.getElementById('weekGrid');
         this.weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -67,29 +67,79 @@ export default  class WeekView {
         dayDate.className = 'day-date';
         dayDate.textContent = date.getDate();
         
+        const dayTasks = weekTasks[date.toLocaleDateString()];
+        const tasksCount = dayTasks ? dayTasks.length : 0;
+        
+        const dayTasksCount = document.createElement('div');
+        dayTasksCount.className = 'day-tasks-count';
+        dayTasksCount.textContent = this.getTaskCountText(tasksCount);
+        
         const dayEvents = document.createElement('div');
         dayEvents.className = 'day-events';
         
-        const dayTasks = weekTasks[date.toLocaleDateString()];
-        if (dayTasks) {
+        // Если одна задача - НЕ добавляем специальные классы
+        // Карточка будет обычной высоты
+        
+        if (dayTasks && dayTasks.length > 0) {
             for (let i = 0; i < dayTasks.length; i++) {
                 const event = document.createElement('div');
                 event.className = 'event';
                 event.textContent = dayTasks[i].summary;
+                
+                // Добавляем тултип с информацией
+                event.title = this.createTaskTooltip(dayTasks[i]);
+                
                 dayEvents.appendChild(event);
+            }
+            
+            // Если задач много - добавляем индикатор скролла
+            if (dayTasks.length > 5) {
+                dayEvents.classList.add('has-scroll');
             }
         } else {
             const placeholder = document.createElement('div');
             placeholder.className = 'day-content';
-            placeholder.textContent = 'События дня';
+            placeholder.textContent = 'Нет задач на этот день';
             dayEvents.appendChild(placeholder);
         }
 
         dayHeader.appendChild(dayName);
         dayHeader.appendChild(dayDate);
         dayCell.appendChild(dayHeader);
+        dayCell.appendChild(dayTasksCount);
         dayCell.appendChild(dayEvents);
         this.weekGrid.appendChild(dayCell);
+    }
+
+    createTaskTooltip(task) {
+        return `Задача: ${task.id}\n` +
+               `Описание: ${task.summary}\n` +
+               `Приоритет: ${task.priority || 'не указан'}\n` +
+               `Исполнитель: ${task.executor || 'не назначен'}\n` +
+               `Статус: ${task.status || 'не указан'}\n` +
+               `Тип: ${task.type || 'не указан'}`;
+    }
+
+    getTaskCountText(count) {
+        if (count === 0) return 'нет задач';
+        
+        const lastDigit = count % 10;
+        const lastTwoDigits = count % 100;
+        
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+            return `${count} задач`;
+        }
+        
+        switch (lastDigit) {
+            case 1:
+                return `${count} задача`;
+            case 2:
+            case 3:
+            case 4:
+                return `${count} задачи`;
+            default:
+                return `${count} задач`;
+        }
     }
 
     isSameDay(date1, date2) {
