@@ -8,31 +8,158 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f5f5;
     padding: 20px;
+    height: 100vh; /* Добавить эту строку */
+    overflow: hidden; /* Добавить эту строку */
 }
 
 .calendar-widget {
     width: 1168px;
-    height: 1167px;
+    height: 95vh; /* Занимаем 95% высоты экрана */
+    max-height: 1200px;
+    min-height: 850px; /* Увеличили минимальную высоту */
     background: white;
     border-radius: 15px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
+/* Убедимся, что все view-container занимают доступное пространство */
 .view-container {
     flex: 1;
     padding: 0 30px 30px;
-    min-height: 700px; /* Обеспечиваем одинаковую минимальную высоту */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Критически важно! */
 }
 
-.day-view {
-    padding: 20px;
-    text-align: center;
-    color: #666;
-    height: 100%;
+/* Улучшенные стили для месячного календаря */
+.month-calendar-wrapper {
+    flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.month-grid-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    border: 2px solid #d0d0d0;
+    border-radius: 8px;
+    background: #d0d0d0;
+    margin-top: 10px;
+}
+
+/* Стили для скроллбара */
+.month-grid-scroll-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+.month-grid-scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.month-grid-scroll-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.month-grid-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Убедимся, что заголовок и фильтры не съезжают */
+.calendar-header,
+.filters-panel {
+    flex-shrink: 0; /* Запрещаем сжиматься */
+}
+
+/* Убедимся, что виджет адаптируется под экран */
+.calendar-widget {
+    width: 1168px;
+    height: 95vh; /* Занимаем 95% высоты экрана */
+    max-height: 1200px;
+    min-height: 850px; /* Увеличили минимальную высоту */
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Улучшенные стили для месячного календаря */
+.month-calendar-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Критически важно! */
+    overflow: hidden;
+}
+
+.month-grid-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    border: 2px solid #d0d0d0;
+    border-radius: 8px;
+    background: #d0d0d0;
+    margin-top: 10px;
+}
+
+/* Стили для скроллбара */
+.month-grid-scroll-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+.month-grid-scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.month-grid-scroll-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.month-grid-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Убедимся, что заголовок и фильтры не съезжают */
+.calendar-header,
+.filters-panel {
+    flex-shrink: 0; /* Запрещаем сжиматься */
+}
+
+#monthView .month-grid-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    border: 2px solid #d0d0d0;
+    border-radius: 8px;
+    background: #d0d0d0;
+    margin-top: 10px;
+    max-height: 650px; /* Ограничиваем максимальную высоту */
+}
+
+/* Увеличим минимальную высоту сетки */
+#monthView .days-grid {
+    min-height: 850px; /* Увеличили с 780px до 850px */
+}
+
+/* Стиль для кнопки "еще задач" */
+.event.more-task {
+    background: #ffeaa7 !important;
+    border-left: 4px solid #fdcb6e !important;
+    font-weight: 600;
+    color: #333;
+}
+
+.event.more-task:hover {
+    background: #fab1a0 !important;
+    border-left: 4px solid #e17055 !important;
 }

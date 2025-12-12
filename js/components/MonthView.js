@@ -82,18 +82,89 @@ export default class MonthView {
         const startDate = this.parseDate(this.daysGrid.children[0].dataset.date);
         const endDate = this.parseDate(this.daysGrid.children[41].dataset.date);
 
+        // Собираем задачи по дням
+        const tasksByDay = {};
         for (let i = 0; i < tasks.length; i++) {
             const task = tasks[i];
             const deadline = task.deadline;
             if (deadline >= startDate && deadline <= endDate) {
-                const cell = document.querySelector(`[data-date="${deadline.toLocaleDateString()}"]`);
-                const cellEvents = cell.querySelector('.day-events');
-
-                const event = document.createElement('div');
-                event.className = 'event';
-                event.textContent = task.summary;
-                cellEvents.appendChild(event);
+                const dateKey = deadline.toLocaleDateString();
+                if (!tasksByDay[dateKey]) {
+                    tasksByDay[dateKey] = [];
+                }
+                tasksByDay[dateKey].push(task);
             }
+        }
+
+        // Отображаем ВСЕ задачи
+        for (const [dateKey, dayTasks] of Object.entries(tasksByDay)) {
+            const cell = document.querySelector(`[data-date="${dateKey}"]`);
+            if (cell) {
+                const cellEvents = cell.querySelector('.day-events');
+                
+                // Если есть задачи - добавляем счетчик
+                if (dayTasks.length > 0) {
+                    const taskCount = document.createElement('div');
+                    taskCount.className = 'task-count';
+                    taskCount.textContent = this.getTaskCountText(dayTasks.length);
+                    cellEvents.appendChild(taskCount);
+                }
+                
+                // Добавляем ВСЕ задачи
+                dayTasks.forEach(task => {
+                    const event = this.createTaskElement(task);
+                    cellEvents.appendChild(event);
+                });
+                
+                // Если много задач - добавляем индикатор
+                if (dayTasks.length > 5) {
+                    cell.classList.add('many-tasks');
+                }
+            }
+        }
+    }
+
+    createTaskElement(task) {
+        const event = document.createElement('div');
+        event.className = 'event';
+        event.textContent = task.summary || 'Без названия';
+        
+        // Добавляем тултип с полной информацией
+        event.title = this.createTaskTooltip(task);
+        
+        return event;
+    }
+
+    createTaskTooltip(task) {
+        return `Задача: ${task.id || 'Без ID'}\n` +
+               `Описание: ${task.summary || 'Без названия'}\n` +
+               `Приоритет: ${task.priority || 'не указан'}\n` +
+               `Исполнитель: ${task.executor || 'не назначен'}\n` +
+               `Статус: ${task.status || 'не указан'}\n` +
+               `Тип: ${task.type || 'не указан'}\n` +
+               `Подсистема: ${task.subsystem || 'не указана'}\n` +
+               `Затрачено: ${task.timeSpent || 'не указано'}`;
+    }
+
+    getTaskCountText(count) {
+        if (count === 0) return '';
+        
+        const lastDigit = count % 10;
+        const lastTwoDigits = count % 100;
+        
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+            return `${count} задач`;
+        }
+        
+        switch (lastDigit) {
+            case 1:
+                return `${count} задача`;
+            case 2:
+            case 3:
+            case 4:
+                return `${count} задачи`;
+            default:
+                return `${count} задач`;
         }
     }
 
