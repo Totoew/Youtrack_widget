@@ -1,0 +1,14 @@
+{
+    "key": "calendar-widget-stellar",
+    "version": "0.1.0",
+    "name": "Calendar",
+    "description": "",
+    "author": "titov",
+    "products": {
+        "YouTrack": ">=2018.1"
+    },
+    "capabilities": {
+        "popups": true,
+        "topNavigation": true
+    }
+}
