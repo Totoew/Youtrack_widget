@@ -126,9 +126,24 @@ export default class MonthView {
 
     createTaskElement(task) {
         const event = document.createElement('div');
-        event.className = 'event';
+        event.className = 'month-event';
         event.textContent = task.summary || 'Без названия';
         
+        switch (task.priority) {
+            case 'Show-stopper':
+                event.classList.add('show-stopper');
+                break;
+            case 'Critical':
+                event.classList.add('critical');
+                break;
+            case 'Major':
+                event.classList.add('major');
+                break;
+            case 'Normal':
+                event.classList.add('normal');
+                break;
+        }
+
         // Добавляем тултип с полной информацией
         event.title = this.createTaskTooltip(task);
         

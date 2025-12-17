@@ -51,6 +51,8 @@
 /* Сегодняшний день */
 .day-cell.today {
     background: #94D3FF !important;
+    padding-top: 7px;
+
 }
 
 .day-cell.today .day-number {
@@ -101,28 +103,73 @@
 }
 
 /* Событие (задача) */
-.event {
-    background: #e3f2fd;
-    padding: 6px 8px;
-    margin-bottom: 4px;
-    border-radius: 3px;
-    font-size: 12px;
-    border-left: 3px solid #2196f3;
+.month-event {
+    background: #E6E6E6;
+    padding: 10px 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    border-left: 4px solid #8E8E8E;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 0; /* Не растягивается */
+    min-height: 30px; /* Фиксированная минимальная высота */
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
     cursor: pointer;
-    transition: background 0.2s;
-    flex-shrink: 0; /* Не сжимается */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.event:hover {
-    background: #d1e9ff;
-    white-space: normal;
+/* Пока убираем увеличение размера задачи */
+.month-event:hover {
+    background: #F0F0F0;
+
+    /*white-space: normal;
     overflow: visible;
     z-index: 10;
     position: relative;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);*/
+}
+
+
+/* Разные цвета для приоритетов */
+.show-stopper {
+    background: #FF6666;
+    border-left: 4px solid #B71C1C;
+}
+
+.show-stopper:hover {
+    background: #FF4C4C;
+}
+
+.critical {
+    background: #FFC8EA;
+    border-left: 4px solid #EC407A;
+}
+
+.critical:hover {
+    background: #EFB8DA;
+}
+
+.major {
+    background: #FFEE9C;
+    border-left: 4px solid #FFC107;
+}
+
+.major:hover {
+    background: #EFDE8C;
+}
+
+.normal {
+    background: #E6F6CF;
+    border-left: 4px solid #7CB342;
+}
+
+.normal:hover {
+    background: #D6E6BF;
 }
 
 /* Счетчик задач */

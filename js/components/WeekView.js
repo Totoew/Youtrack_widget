@@ -82,12 +82,28 @@ export default class WeekView {
         
         if (dayTasks && dayTasks.length > 0) {
             for (let i = 0; i < dayTasks.length; i++) {
+                const task = dayTasks[i];
                 const event = document.createElement('div');
                 event.className = 'event';
-                event.textContent = dayTasks[i].summary;
+                event.textContent = task.summary;
+
+                switch (task.priority) {
+                    case 'Show-stopper':
+                        event.classList.add('show-stopper');
+                        break;
+                    case 'Critical':
+                        event.classList.add('critical');
+                        break;
+                    case 'Major':
+                        event.classList.add('major');
+                        break;
+                    case 'Normal':
+                        event.classList.add('normal');
+                        break;
+                }
                 
                 // Добавляем тултип с информацией
-                event.title = this.createTaskTooltip(dayTasks[i]);
+                event.title = this.createTaskTooltip(task);
                 
                 dayEvents.appendChild(event);
             }

@@ -24,6 +24,7 @@
 
 .week-day.current-day {
     background: #94D3FF;
+    padding-top: 7px;
 }
 
 .day-header {
@@ -92,17 +93,17 @@
 }
 
 .event {
-    background: #e3f2fd;
-    padding: 12px 15px;
+    background: #E6E6E6;
+    padding: 10px 10px;
     margin-bottom: 10px;
     border-radius: 6px;
     font-size: 14px;
-    border-left: 4px solid #2196f3;
+    border-left: 4px solid #8E8E8E;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     flex-shrink: 0; /* Не растягивается */
-    min-height: 50px; /* Фиксированная минимальная высота */
+    min-height: 30px; /* Фиксированная минимальная высота */
     display: flex;
     align-items: center;
     transition: all 0.2s;
@@ -110,14 +111,53 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
+/* Пока убираем увеличение размера задачи */
 .event:hover {
-    background: #d1e9ff;
-    white-space: normal;
+    background: #F0F0F0;
+
+    /*white-space: normal;
     overflow: visible;
     z-index: 10;
     position: relative;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transform: translateY(-1px);
+    transform: translateY(-1px);*/
+}
+
+/* Разные цвета для приоритетов */
+.show-stopper {
+    background: #FF6666;
+    border-left: 4px solid #B71C1C;
+}
+
+.show-stopper:hover {
+    background: #FF4C4C;
+}
+
+.critical {
+    background: #FFC8EA;
+    border-left: 4px solid #EC407A;
+}
+
+.critical:hover {
+    background: #EFB8DA;
+}
+
+.major {
+    background: #FFEE9C;
+    border-left: 4px solid #FFC107;
+}
+
+.major:hover {
+    background: #EFDE8C;
+}
+
+.normal {
+    background: #E6F6CF;
+    border-left: 4px solid #7CB342;
+}
+
+.normal:hover {
+    background: #D6E6BF;
 }
 
 /* Placeholder для дней без задач */

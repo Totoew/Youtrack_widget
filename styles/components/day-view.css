@@ -17,7 +17,7 @@
     overflow: hidden;
 }
 
-.day-cell-single.today {
+.today .day-header-single {
     background: #94D3FF;
 }
 
@@ -68,7 +68,29 @@
     flex: 1;
     overflow-y: auto;
     padding: 20px 30px;
+    min-height: 450px;
+    max-height: 450px;
 }
+
+/* Стили для скроллбара */
+.day-tasks-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+.day-tasks-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.day-tasks-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.day-tasks-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 
 .no-tasks-message {
     text-align: center;
@@ -147,29 +169,30 @@
 
 /* Стили приоритетов */
 .task-priority {
-    color: white;
+    color: #333;
     font-weight: 600;
 }
 
+.priority-show-stopper {
+    background: #FF6666;
+}
+
 .priority-critical {
-    background: #dc3545;
+    background: #EC407A;
 }
 
-.priority-high {
-    background: #fd7e14;
-}
-
-.priority-medium {
-    background: #ffc107;
+.priority-major {
+    background: #FFEE9C;
     color: #333;
 }
 
-.priority-low {
-    background: #28a745;
+.priority-normal {
+    background: #7CB342;
 }
 
 .priority-default {
     background: #6c757d;
+    color: #FFFFFF;
 }
 
 /* Стили статусов */
@@ -213,6 +236,7 @@
 .task-subsystem,
 .task-time {
     background: #f8f9fa;
+    border: 1px solid #dee2e6;
     color: #666;
 }
 
