@@ -174,10 +174,10 @@ export default class DayView {
 
     getPriorityClass(priority) {
         const priorityMap = {
-            'Критический': 'critical',
-            'Высокий': 'high',
-            'Средний': 'medium',
-            'Низкий': 'low'
+            'Critical': 'critical',
+            'Show-stopper': 'show-stopper',
+            'Major': 'major',
+            'Normal': 'normal'
         };
         return priorityMap[priority] || 'default';
     }

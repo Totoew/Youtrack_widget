@@ -4,6 +4,18 @@ const USER_TOKEN = 'perm:bmxvdm5hcw==.NTAtMzI=.R0zsXvnYAnNGruuHBmtvVz0CJUxbKv';
 // Адрес сайта
 const YOUTRACK_URL = 'https://youtrack.66bit.ru';
 
+// Словарь для кастомных полей события
+const customField = {
+    'Priority': 'priority',
+    'Type': 'type',
+    'State': 'status',
+    'Отдыхающий': 'executor',
+    'Subsystem': 'subsystem',
+    'Затраченное время': 'timeSpent',
+    'Дата начала': 'startDate',
+    'Due Date': 'deadline'
+};
+
 // Функция для поиска проектов текущего пользователя
 async function fetchProjects() {
     const response = await fetch(`${YOUTRACK_URL}/api/admin/projects?fields=name,shortName`, {
@@ -52,7 +64,8 @@ async function fetchTasks(shortName) {
 function parseTasks(tasks) {
     const tasksLength = tasks.length;
     const tasksFields = [];
-    const fields = ['priority', 'type', 'status', 'executor', 'subsystem', 'timeSpent', 'startDate', 'deadline', 'summary', 'id'];
+    let fields = ['summary', 'id'];
+    const customFieldsNames = [];
 
     for (let i = 0; i < tasksLength; i++) {
         const task = tasks[i];
@@ -70,10 +83,17 @@ function parseTasks(tasks) {
                 value = new Date(value);
             }
 
+            if (customFieldsNames.length < customFieldsLength) {
+                customFieldsNames.push(customField[name]);
+            }
             taskFields[name] = value;
         }
         taskFields['summary'] = task.summary;
         taskFields['id'] = task.idReadable;
+
+        if (fields.length === 2) {
+            fields = [...customFieldsNames, ...fields];
+        }
 
         taskFields = Object.fromEntries(
             Object.values(taskFields).map((value, i) => [fields[i], value])
