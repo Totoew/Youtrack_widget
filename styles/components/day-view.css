@@ -120,11 +120,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.day-cell-single.today .day-task {
-    background: #e8f4ff;
-    border-left: 4px solid #007bff;
-}
-
 .task-header {
     display: flex;
     align-items: flex-start;
@@ -201,12 +196,7 @@
     border: 1px solid #dee2e6;
 }
 
-.status-new {
-    border-color: #17a2b8;
-    color: #17a2b8;
-}
-
-.status-in-progress {
+.status-to-do {
     border-color: #007bff;
     color: #007bff;
 }
@@ -216,14 +206,24 @@
     color: #6f42c1;
 }
 
-.status-completed {
+.status-done {
     border-color: #28a745;
     color: #28a745;
 }
 
-.status-postponed {
+.status-frozen {
     border-color: #6c757d;
     color: #6c757d;
+}
+
+.status-development {
+    border-color: #d3924c;
+    color: #d3924c;
+}
+
+.status-qa {
+    border-color: #ce53df;
+    color: #ce53df;
 }
 
 /* Остальные элементы */
@@ -246,6 +246,11 @@
     font-weight: 600;
     color: #333;
     margin-right: 4px;
+}
+
+.task-deadline {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
 }
 
 /* Адаптивность для маленьких экранов */

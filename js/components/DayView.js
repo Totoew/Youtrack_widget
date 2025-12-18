@@ -10,12 +10,24 @@ export default class DayView {
         const isToday = this.isSameDay(date, today);
 
         const dayTasks = [];
-        const dateString = date.toLocaleDateString();
+
         for (let i = 0; i < tasks.length; i++) {
-            if (tasks[i].deadline.toLocaleDateString() === dateString) {
-                dayTasks.push(tasks[i]);
+            const task = tasks[i];
+            const deadline = new Date(task.deadline);
+            const startDate = task.startDate ? new Date(task.startDate) : null;
+            
+            const isDeadlineToday = this.isSameDay(deadline, date);
+            const hasStarted = startDate && this.isSameDay(startDate, date);
+            const isInProgress = startDate && 
+                                this.isAfterDay(date, startDate) && 
+                                this.isAfterDay(deadline, date);
+            
+            if (isDeadlineToday || hasStarted || isInProgress) {
+                dayTasks.push(task);
             }
         }
+
+        dayTasks.sort((a, b) => a.id.localeCompare(b.id));
         
         this.createDayCell(date, isToday, dayTasks);
     }
@@ -53,7 +65,7 @@ export default class DayView {
         // Отрисовка задач
         if (dayTasks && dayTasks.length > 0) {
             dayTasks.forEach((task, index) => {
-                const taskElement = this.createTaskElement(task, index);
+                const taskElement = this.createTaskElement(task, index, date);
                 tasksContainer.appendChild(taskElement);
             });
         } else {
@@ -94,7 +106,7 @@ export default class DayView {
         }
     }
 
-    createTaskElement(task, index) {
+    createTaskElement(task, index, date) {
         const taskElement = document.createElement('div');
         taskElement.className = 'day-task';
         taskElement.dataset.index = index;
@@ -121,7 +133,8 @@ export default class DayView {
         // Приоритет с цветовой кодировкой
         if (task.priority) {
             const priorityElement = document.createElement('div');
-            priorityElement.className = `task-priority priority-${this.getPriorityClass(task.priority)}`;
+            const priorityData = this.getPriorityClass(task.priority);
+            priorityElement.className = `task-priority priority-${priorityData}`;
             priorityElement.textContent = task.priority;
             taskDetails.appendChild(priorityElement);
         }
@@ -166,6 +179,24 @@ export default class DayView {
             taskDetails.appendChild(timeElement);
         }
 
+        if (task.startDate) {
+            const deadline = new Date(task.deadline);
+            const startDate = new Date(task.startDate);
+            const deadlineElement = document.createElement('div');
+            deadlineElement.className = `task-deadline`;
+
+            if (!this.isSameDay(date, deadline)) {
+                if (this.isSameDay(date, startDate)) {
+                    deadlineElement.innerHTML = `<span class="label">До</span> ${deadline.getDate()}.${deadline.getMonth() + 1}`;
+                } else {
+                    deadlineElement.innerHTML = `<span class="label">С</span> ${startDate.getDate()}.${startDate.getMonth() + 1} до ${deadline.getDate()}.${deadline.getMonth() + 1}`;
+                }
+            } else {
+                deadlineElement.innerHTML = `<span class="label">Крайний срок</span>`;
+            }
+            taskDetails.appendChild(deadlineElement);
+        }
+
         taskElement.appendChild(taskHeader);
         taskElement.appendChild(taskDetails);
         
@@ -174,28 +205,36 @@ export default class DayView {
 
     getPriorityClass(priority) {
         const priorityMap = {
-            'Critical': 'critical',
-            'Show-stopper': 'show-stopper',
-            'Major': 'major',
-            'Normal': 'normal'
+            'Критическая': 'critical',
+            'Неотложная': 'show-stopper',
+            'Серьезная': 'major',
+            'Обычная': 'normal'
         };
         return priorityMap[priority] || 'default';
     }
 
     getStatusClass(status) {
         const statusMap = {
-            'Новая': 'new',
-            'В работе': 'in-progress',
+            'Нужно сделать': 'to-do',
             'На проверке': 'review',
-            'Завершена': 'completed',
-            'Отложена': 'postponed'
+            'Готово': 'done',
+            'Отложено': 'frozen',
+            'В работе': 'development',
+            'QA': 'qa'
         };
         return statusMap[status] || 'default';
     }
 
+
     isSameDay(date1, date2) {
-        return date1.getDate() === date2.getDate() &&
-               date1.getMonth() === date2.getMonth() &&
-               date1.getFullYear() === date2.getFullYear();
+        const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+        const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+        return d1.getTime() === d2.getTime();
+    }
+
+    isAfterDay(date1, date2) {
+        const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+        const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+        return d1.getTime() > d2.getTime();
     }
 }

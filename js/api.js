@@ -16,6 +16,25 @@ const customField = {
     'Due Date': 'deadline'
 };
 
+const prioritiesNames = {
+    'Show-stopper': 'Неотложная',
+    'Critical': 'Критическая',
+    'Major': 'Серьезная',
+    'Normal': 'Обычная',
+    'Minor': 'Незначительная'
+};
+
+const statusesNames = {
+    'Done': 'Готово',
+    'ToDo': 'Нужно сделать',
+    'Development': 'В работе',
+    'Review': 'На проверке',
+    'Frozen': 'Отложено',
+    'Canceled': 'Отменено',
+    'Backlog': 'Бэклог',
+    'Waiting for Deployment': 'Ожидает деплоя на Prod'
+};
+
 // Функция для поиска проектов текущего пользователя
 async function fetchProjects() {
     const response = await fetch(`${YOUTRACK_URL}/api/admin/projects?fields=name,shortName`, {
@@ -77,10 +96,14 @@ function parseTasks(tasks) {
             let name = customFields.projectCustomField.field.name;
             let value = customFields.value?.name || customFields.value;
 
-            if (name == 'Затраченное время' && value != null) {
+            if (name === 'Затраченное время' && value !== null) {
                 value = value.presentation;
-            } else if (name == 'Due Date') {
+            } else if (name === 'Due Date') {
                 value = new Date(value);
+            } else if (name === 'Priority') {
+                value = prioritiesNames[value] || value;
+            } else if (name === 'State') {
+                value = statusesNames[value] || value;
             }
 
             if (customFieldsNames.length < customFieldsLength) {

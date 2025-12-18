@@ -88,16 +88,16 @@ export default class WeekView {
                 event.textContent = task.summary;
 
                 switch (task.priority) {
-                    case 'Show-stopper':
+                    case 'Неотложная':
                         event.classList.add('show-stopper');
                         break;
-                    case 'Critical':
+                    case 'Критическая':
                         event.classList.add('critical');
                         break;
-                    case 'Major':
+                    case 'Серьезная':
                         event.classList.add('major');
                         break;
-                    case 'Normal':
+                    case 'Обычная':
                         event.classList.add('normal');
                         break;
                 }
