@@ -18,6 +18,7 @@ const timeSpent = [
     "Больше месяца"
 ];
 
+// Функция для создания списка проектов
 async function makeProjectsList() {
     const projects = await fetchProjects();
     const names = projects.map(task => task.name);
@@ -25,6 +26,8 @@ async function makeProjectsList() {
     return [names, shortNames];
 }
 
+
+// Функция для создания списков фильтров
 async function makeTaskFieldsList(shortName) {
     const tasks = await fetchTasks(shortName);
     const tasksLength = tasks.length;

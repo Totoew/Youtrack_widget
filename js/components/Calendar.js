@@ -57,7 +57,6 @@ export default class Calendar {
         this.projectSelect.addEventListener('change', async () => await this.changeProject());
 
         this.filterTasks();
-        this.render();
     }
 
     async findTasks(shortName) {

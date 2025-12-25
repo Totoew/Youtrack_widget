@@ -1,21 +1,43 @@
 export default class WeekView {
     constructor() {
         this.weekGrid = document.getElementById('weekGrid');
+        this.weekEvents = document.getElementById('weekEvents');
         this.weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     }
 
     render(date, tasks) {
         this.weekGrid.innerHTML = '';
+        this.weekEvents.innerHTML = '';
         
         const weekDates = this.getWeekDates(date);
         const weekDatesLocale = weekDates.map(item => item.toLocaleDateString());
 
         const weekTasks = {};
+
         for (let i = 0; i < tasks.length; i++) {
             const task = tasks[i];
             const deadline = task.deadline.toLocaleDateString();
 
-            if (weekDatesLocale.includes(deadline)) {
+            if (task.startDate) {
+                const startDate = task.startDate.toLocaleDateString();
+                if (weekDatesLocale.includes(startDate)) {
+                    if (!weekTasks[startDate]) {
+                        weekTasks[startDate] = [];
+                    }
+
+                    weekTasks[startDate].push(task);
+                }
+
+                else if (weekDatesLocale.includes(deadline)) {
+                    if (!weekTasks[deadline]) {
+                        weekTasks[deadline] = [];
+                    }
+
+                    weekTasks[deadline].push(task);
+                }
+            }
+
+            else if (weekDatesLocale.includes(deadline)) {
                 if (!weekTasks[deadline]) {
                     weekTasks[deadline] = [];
                 }
@@ -24,11 +46,13 @@ export default class WeekView {
             }
         }
 
+        this.createEvents(weekDates, weekTasks);
+
         const today = new Date();
         
         weekDates.forEach((weekDate, index) => {
             const isCurrentDay = this.isSameDay(weekDate, today);
-            this.createWeekDayCell(weekDate, isCurrentDay, weekTasks);
+            this.createWeekDayCell(weekDate, isCurrentDay, weekDates);
         });
     }
 
@@ -48,7 +72,7 @@ export default class WeekView {
         return dates;
     }
 
-    createWeekDayCell(date, isCurrentDay, weekTasks) {
+    createWeekDayCell(date, isCurrentDay, weekDates) {
         const dayCell = document.createElement('div');
         dayCell.className = 'week-day';
         
@@ -66,53 +90,16 @@ export default class WeekView {
         const dayDate = document.createElement('div');
         dayDate.className = 'day-date';
         dayDate.textContent = date.getDate();
-        
-        const dayTasks = weekTasks[date.toLocaleDateString()];
-        const tasksCount = dayTasks ? dayTasks.length : 0;
-        
+
+        const tasksCount = this.countElementsInColumn(weekDates.indexOf(date) + 1);
         const dayTasksCount = document.createElement('div');
         dayTasksCount.className = 'day-tasks-count';
         dayTasksCount.textContent = this.getTaskCountText(tasksCount);
         
         const dayEvents = document.createElement('div');
         dayEvents.className = 'day-events';
-        
-        // Если одна задача - НЕ добавляем специальные классы
-        // Карточка будет обычной высоты
-        
-        if (dayTasks && dayTasks.length > 0) {
-            for (let i = 0; i < dayTasks.length; i++) {
-                const task = dayTasks[i];
-                const event = document.createElement('div');
-                event.className = 'event';
-                event.textContent = task.summary;
 
-                switch (task.priority) {
-                    case 'Неотложная':
-                        event.classList.add('show-stopper');
-                        break;
-                    case 'Критическая':
-                        event.classList.add('critical');
-                        break;
-                    case 'Серьезная':
-                        event.classList.add('major');
-                        break;
-                    case 'Обычная':
-                        event.classList.add('normal');
-                        break;
-                }
-                
-                // Добавляем тултип с информацией
-                event.title = this.createTaskTooltip(task);
-                
-                dayEvents.appendChild(event);
-            }
-            
-            // Если задач много - добавляем индикатор скролла
-            if (dayTasks.length > 5) {
-                dayEvents.classList.add('has-scroll');
-            }
-        } else {
+        if (tasksCount === 0) {
             const placeholder = document.createElement('div');
             placeholder.className = 'day-content';
             placeholder.textContent = 'Нет задач на этот день';
@@ -125,6 +112,50 @@ export default class WeekView {
         dayCell.appendChild(dayTasksCount);
         dayCell.appendChild(dayEvents);
         this.weekGrid.appendChild(dayCell);
+    }
+
+    createEvents(weekDates, weekTasks) {
+        weekDates = weekDates.map(weekDate => weekDate.toLocaleDateString());
+        const tasks = Object.values(weekTasks).flat();
+        tasks.sort((a, b) => a.startDate - b.startDate);
+
+        for (let i = 0; i < tasks.length; i++) {
+            const task = tasks[i];
+            task.startDate = task.startDate || task.deadline;
+            const event = document.createElement('div');
+            event.className = 'grid-event';
+            event.textContent = task.summary;
+
+            const [startIndex, width] = this.getCellIndex(weekDates, task);
+            event.style.gridColumn = `${startIndex} / span ${width}`;
+
+            switch (task.priority) {
+                case 'Неотложная':
+                    event.classList.add('show-stopper');
+                    break;
+                case 'Критическая':
+                    event.classList.add('critical');
+                    break;
+                case 'Серьезная':
+                    event.classList.add('major');
+                    break;
+                case 'Обычная':
+                    event.classList.add('normal');
+                    break;
+            }
+
+            event.title = this.createTaskTooltip(task);
+
+            this.weekEvents.appendChild(event);
+        }
+    }
+
+    getCellIndex(weekDates, task) {
+        const startDate = task.startDate.toLocaleDateString();
+        const deadline = task.deadline.toLocaleDateString();
+        const startIndex = weekDates.indexOf(startDate) === -1 ? 1 : weekDates.indexOf(startDate) + 1;
+        const endIndex = weekDates.indexOf(deadline) === -1 ? 7 : weekDates.indexOf(deadline) + 1;
+        return [startIndex, endIndex - startIndex + 1];
     }
 
     createTaskTooltip(task) {
@@ -162,5 +193,23 @@ export default class WeekView {
         return date1.getDate() === date2.getDate() &&
                date1.getMonth() === date2.getMonth() &&
                date1.getFullYear() === date2.getFullYear();
+    }
+
+
+    countElementsInColumn(columnNumber) {
+        const events = document.querySelectorAll('.grid-event');
+        let count = 0;
+        
+        events.forEach(event => {
+            const gridColumn = event.style.gridColumn;
+            if (gridColumn) {
+                const [start, width] = gridColumn.split(' / span ').map(item => parseInt(item));
+                if (columnNumber >= start && columnNumber <= start + width - 1) {
+                    count++;
+                }
+            }
+        });
+        
+        return count;
     }
 }

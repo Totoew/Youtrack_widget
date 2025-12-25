@@ -104,6 +104,8 @@ function parseTasks(tasks) {
                 value = prioritiesNames[value] || value;
             } else if (name === 'State') {
                 value = statusesNames[value] || value;
+            } else if (name === 'Дата начала' && value) {              
+                value = new Date(value);
             }
 
             if (customFieldsNames.length < customFieldsLength) {

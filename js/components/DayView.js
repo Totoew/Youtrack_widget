@@ -192,8 +192,15 @@ export default class DayView {
                     deadlineElement.innerHTML = `<span class="label">С</span> ${startDate.getDate()}.${startDate.getMonth() + 1} до ${deadline.getDate()}.${deadline.getMonth() + 1}`;
                 }
             } else {
-                deadlineElement.innerHTML = `<span class="label">Крайний срок</span>`;
+                deadlineElement.innerHTML = `<span class="label">Последний день</span>`;
             }
+            taskDetails.appendChild(deadlineElement);
+        }
+
+        if (task.deadline && !task.startDate) {
+            const deadlineElement = document.createElement('div');
+            deadlineElement.className = `task-deadline`;
+            deadlineElement.innerHTML = `<span class="label">Последний день</span>`;
             taskDetails.appendChild(deadlineElement);
         }
 
