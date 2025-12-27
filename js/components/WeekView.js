@@ -12,37 +12,19 @@ export default class WeekView {
         const weekDates = this.getWeekDates(date);
         const weekDatesLocale = weekDates.map(item => item.toLocaleDateString());
 
-        const weekTasks = {};
+        const weekTasks = [];
 
         for (let i = 0; i < tasks.length; i++) {
             const task = tasks[i];
+            task.startDate = task.startDate || task.deadline;
+
             const deadline = task.deadline.toLocaleDateString();
+            const startDate = task.startDate.toLocaleDateString();
 
-            if (task.startDate) {
-                const startDate = task.startDate.toLocaleDateString();
-                if (weekDatesLocale.includes(startDate)) {
-                    if (!weekTasks[startDate]) {
-                        weekTasks[startDate] = [];
-                    }
-
-                    weekTasks[startDate].push(task);
-                }
-
-                else if (weekDatesLocale.includes(deadline)) {
-                    if (!weekTasks[deadline]) {
-                        weekTasks[deadline] = [];
-                    }
-
-                    weekTasks[deadline].push(task);
-                }
-            }
-
-            else if (weekDatesLocale.includes(deadline)) {
-                if (!weekTasks[deadline]) {
-                    weekTasks[deadline] = [];
-                }
-
-                weekTasks[deadline].push(task);
+            if (weekDatesLocale.includes(startDate) || 
+                weekDatesLocale.includes(deadline) ||
+                task.startDate < weekDates[0] && weekDates[6] < task.deadline) {
+                weekTasks.push(task);
             }
         }
 
@@ -114,17 +96,20 @@ export default class WeekView {
         this.weekGrid.appendChild(dayCell);
     }
 
-    createEvents(weekDates, weekTasks) {
+    createEvents(weekDates, tasks) {
         weekDates = weekDates.map(weekDate => weekDate.toLocaleDateString());
-        const tasks = Object.values(weekTasks).flat();
         tasks.sort((a, b) => a.startDate - b.startDate);
 
         for (let i = 0; i < tasks.length; i++) {
             const task = tasks[i];
-            task.startDate = task.startDate || task.deadline;
             const event = document.createElement('div');
             event.className = 'grid-event';
             event.textContent = task.summary;
+            
+            if (task.status === 'Готово') {
+                event.style.textDecoration = 'line-through';
+                event.style.textDecorationColor = '#807e7eff';
+            }
 
             const [startIndex, width] = this.getCellIndex(weekDates, task);
             event.style.gridColumn = `${startIndex} / span ${width}`;

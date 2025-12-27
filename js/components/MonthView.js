@@ -1,11 +1,41 @@
 export default class MonthView {
     constructor() {
         this.daysGrid = document.getElementById('daysGrid');
+        this.monthEvents = document.querySelector('.month-events');
     }
 
     render(date, tasks) {
         this.daysGrid.innerHTML = '';
-        
+        this.monthEvents.innerHTML = '';
+
+        this.eventsInRow = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []};
+
+        this.createMonthCells(date);
+
+        // Собираем задачи по дням
+        const startCalendarDate = this.parseDate(this.daysGrid.children[0].dataset.date);
+        const endCalendarDate = this.parseDate(this.daysGrid.children[41].dataset.date);
+
+        const monthTasks = [];
+        for (let i = 0; i < tasks.length; i++) {
+            const task = tasks[i];
+            task.startDate = task.startDate || task.deadline;
+            const startDate = task.startDate;
+            const deadline = task.deadline;
+
+            if (deadline >= startCalendarDate && deadline <= endCalendarDate ||
+                startDate >= startCalendarDate && startDate <= endCalendarDate ) {
+                monthTasks.push(task);
+            }
+        }
+
+        monthTasks.sort((a, b) => a.deadline - b.startDate);
+
+        this.renderTasks(monthTasks);
+    }
+
+    // Создаёт ячейки месяца
+    createMonthCells(date) {
         const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
         const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
         const startDay = firstDayOfMonth.getDay();
@@ -27,13 +57,13 @@ export default class MonthView {
         const totalCells = 42;
         const daysSoFar = adjustedStartDay + lastDayOfMonth.getDate();
         const nextMonthDays = totalCells - daysSoFar;
+
         for (let day = 1; day <= nextMonthDays; day++) {
             this.createDayCell(day, true, date);
         }
-
-        this.renderTasks(tasks);
     }
 
+    // Создаёт ячейку одного дня
     createDayCell(day, isOtherMonth, currentMonthDate) {
         const dayCell = document.createElement('div');
         dayCell.className = 'day-cell';
@@ -78,78 +108,85 @@ export default class MonthView {
         this.daysGrid.appendChild(dayCell);
     }
 
-    renderTasks(tasks) {
-        const startDate = this.parseDate(this.daysGrid.children[0].dataset.date);
-        const endDate = this.parseDate(this.daysGrid.children[41].dataset.date);
-
-        // Собираем задачи по дням
-        const tasksByDay = {};
-        for (let i = 0; i < tasks.length; i++) {
-            const task = tasks[i];
-            const deadline = task.deadline;
-            if (deadline >= startDate && deadline <= endDate) {
-                const dateKey = deadline.toLocaleDateString();
-                if (!tasksByDay[dateKey]) {
-                    tasksByDay[dateKey] = [];
-                }
-                tasksByDay[dateKey].push(task);
-            }
+    // Отображает все события
+    renderTasks(events) {
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            this.createEventElement(event);
         }
 
-        // Отображаем ВСЕ задачи
-        for (const [dateKey, dayTasks] of Object.entries(tasksByDay)) {
-            const cell = document.querySelector(`[data-date="${dateKey}"]`);
-            if (cell) {
-                const cellEvents = cell.querySelector('.day-events');
-                
-                // Если есть задачи - добавляем счетчик
-                if (dayTasks.length > 0) {
-                    const taskCount = document.createElement('div');
-                    taskCount.className = 'task-count';
-                    taskCount.textContent = this.getTaskCountText(dayTasks.length);
-                    cellEvents.appendChild(taskCount);
-                }
-                
-                // Добавляем ВСЕ задачи
-                dayTasks.forEach(task => {
-                    const event = this.createTaskElement(task);
-                    cellEvents.appendChild(event);
-                });
-                
-                // Если много задач - добавляем индикатор
-                if (dayTasks.length > 5) {
-                    cell.classList.add('many-tasks');
-                }
-            }
-        }
+        this.changeDayCells();
     }
 
-    createTaskElement(task) {
-        const event = document.createElement('div');
-        event.className = 'month-event';
-        event.textContent = task.summary || 'Без названия';
+    // Создаёт элемент события
+    createEventElement(event) {
+        const eventElement = document.createElement('div');
+        eventElement.className = 'month-event';
+        eventElement.textContent = event.summary || 'Без названия';
         
-        switch (task.priority) {
+        switch (event.priority) {
             case 'Неотложная':
-                event.classList.add('show-stopper');
+                eventElement.classList.add('show-stopper');
                 break;
             case 'Критическая':
-                event.classList.add('critical');
+                eventElement.classList.add('critical');
                 break;
             case 'Серьезная':
-                event.classList.add('major');
+                eventElement.classList.add('major');
                 break;
             case 'Обычная':
-                event.classList.add('normal');
+                eventElement.classList.add('normal');
                 break;
         }
 
         // Добавляем тултип с полной информацией
-        event.title = this.createTaskTooltip(task);
-        
-        return event;
+        eventElement.title = this.createTaskTooltip(event);
+
+        const [startRowIndex, startColumnIndex, endRowIndex, endColumnIndex] = this.createPositionIndex(event);
+
+        eventElement.dataset.eventId = event.id;
+        const border = eventElement.style.borderRight;
+
+        for (let i = 0; i < endRowIndex - startRowIndex + 1; i++) {
+            const startColumn = i === 0 ? startColumnIndex : 1;
+            const endColumn = i === endRowIndex - startRowIndex ? endColumnIndex : 7;
+
+            if (i > 0) {
+                eventElement.style.borderLeft = 'none';
+            }
+            if (i !== endRowIndex - startRowIndex) {
+                eventElement.style.borderRight = 'none';
+            } else {
+                eventElement.style.borderRight = border;
+            }
+
+            this.appendEvent(eventElement.cloneNode(true), startRowIndex + i, startColumn, endColumn);
+        }
     }
 
+    // Добавляет событие на страницу
+    appendEvent(eventElement, row, startColumn, endColumn) {
+        eventElement.style.gridRow = `${row}`;
+        eventElement.style.gridColumn = `${startColumn} / span ${endColumn - startColumn + 1}`;
+        eventElement.style.marginTop = `${45 + this.eventsInRow[row].length * 40}px`;
+
+        eventElement.addEventListener('mouseenter', function() {
+            const id = this.dataset.eventId;
+            document.querySelectorAll(`[data-event-id="${id}"]`)
+                .forEach(p => p.classList.add('hover'));
+        });
+        
+        eventElement.addEventListener('mouseleave', function() {
+            const id = this.dataset.eventId;
+            document.querySelectorAll(`[data-event-id="${id}"]`)
+                .forEach(p => p.classList.remove('hover'));
+        });
+
+        this.eventsInRow[row].push(eventElement);
+        this.monthEvents.appendChild(eventElement);
+    }
+
+    // Создаёт всплывающую информацию
     createTaskTooltip(task) {
         return `Задача: ${task.id || 'Без ID'}\n` +
                `Описание: ${task.summary || 'Без названия'}\n` +
@@ -161,25 +198,41 @@ export default class MonthView {
                `Затрачено: ${task.timeSpent || 'не указано'}`;
     }
 
-    getTaskCountText(count) {
-        if (count === 0) return '';
-        
-        const lastDigit = count % 10;
-        const lastTwoDigits = count % 100;
-        
-        if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
-            return `${count} задач`;
+    // Находит позиции события
+    createPositionIndex(event) {
+        const {startDate, deadline} = event;
+
+        let startRowIndex = 1;
+        let startColumnIndex = 1;
+
+        let endRowIndex = 6;
+        let endColumnIndex = 7;
+
+        const cellStart = document.querySelector(`[data-date="${startDate.toLocaleDateString()}"]`);
+        if (cellStart) {
+            const cellIndex = Array.from(this.daysGrid.children).indexOf(cellStart);
+            startRowIndex = Math.ceil((cellIndex + 1) / 7);
+            startColumnIndex = cellIndex % 7 + 1;
         }
-        
-        switch (lastDigit) {
-            case 1:
-                return `${count} задача`;
-            case 2:
-            case 3:
-            case 4:
-                return `${count} задачи`;
-            default:
-                return `${count} задач`;
+
+        const cellEnd = document.querySelector(`[data-date="${deadline.toLocaleDateString()}"]`);
+        if (cellEnd) {
+            const cellIndex = Array.from(this.daysGrid.children).indexOf(cellEnd);
+            endRowIndex = Math.ceil((cellIndex + 1) / 7);
+            endColumnIndex = cellIndex % 7 + 1;
+        }
+
+        return [startRowIndex, startColumnIndex, endRowIndex, endColumnIndex];
+    }
+
+    // Меняет размеры дней под события 
+    changeDayCells() {
+        const computed = getComputedStyle(this.monthEvents);
+        const rowValues = computed.gridTemplateRows.split(' ');
+        const cells = this.daysGrid.children;
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
+            cell.style.height = rowValues[Math.floor(i / 7)];
         }
     }
 

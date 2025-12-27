@@ -1,3 +1,7 @@
+.month-grid-scroll-container {
+    position: relative;
+}
+
 /* Заголовки дней недели */
 .weekdays-header {
     display: grid;
@@ -74,47 +78,34 @@
     flex-shrink: 0;
 }
 
-/* Контейнер событий - СКРОЛЛ ВСЕГДА */
-.day-events {
-    flex: 1;
-    overflow-y: auto; /* Всегда скролл */
-    min-height: 40px;
-    max-height: 200px; /* Ограничиваем высоту */
-    padding-right: 2px; /* Для скроллбара */
+
+/* Сетка событий */
+.month-events {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(140px, auto));
+    padding-bottom: 10px;
+    z-index: 2;
 }
 
-/* Улучшаем скроллбар */
-.day-events::-webkit-scrollbar {
-    width: 6px;
-}
-
-.day-events::-webkit-scrollbar-track {
-    background: rgba(241, 241, 241, 0.8);
-    border-radius: 3px;
-}
-
-.day-events::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-}
-
-.day-events::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
 
 /* Событие (задача) */
 .month-event {
     background: #E6E6E6;
     padding: 10px 10px;
-    margin-bottom: 10px;
+    margin: 0 5px;
     border-radius: 6px;
     font-size: 14px;
-    border-left: 4px solid #8E8E8E;
+    border-left: 6px solid #8E8E8E;
+    border-right: 6px solid #8E8E8E;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     flex-shrink: 0; /* Не растягивается */
-    min-height: 30px; /* Фиксированная минимальная высота */
+    height: 30px; /* Фиксированная минимальная высота */
     display: flex;
     align-items: center;
     transition: all 0.2s;
@@ -123,15 +114,8 @@
 }
 
 /* Пока убираем увеличение размера задачи */
-.month-event:hover {
+.month-event.hover {
     background: #F0F0F0;
-
-    /*white-space: normal;
-    overflow: visible;
-    z-index: 10;
-    position: relative;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transform: translateY(-1px);*/
 }
 
 
@@ -139,50 +123,41 @@
 .show-stopper {
     background: #FF6666;
     border-left: 4px solid #B71C1C;
+    border-right: 4px solid #B71C1C;
 }
 
-.show-stopper:hover {
+.show-stopper.hover {
     background: #FF4C4C;
 }
 
 .critical {
     background: #FFC8EA;
     border-left: 4px solid #EC407A;
+    border-right: 4px solid #EC407A;
 }
 
-.critical:hover {
+.critical.hover {
     background: #EFB8DA;
 }
 
 .major {
     background: #FFEE9C;
     border-left: 4px solid #FFC107;
+    border-right: 4px solid #FFC107;
 }
 
-.major:hover {
+.major.hover {
     background: #EFDE8C;
 }
 
 .normal {
     background: #E6F6CF;
     border-left: 4px solid #7CB342;
+    border-right: 4px solid #7CB342;
 }
 
-.normal:hover {
+.normal.hover {
     background: #D6E6BF;
-}
-
-/* Счетчик задач */
-.task-count {
-    font-size: 11px;
-    color: #666;
-    font-weight: 600;
-    margin-bottom: 6px;
-    text-align: center;
-    background: #f0f0f0;
-    padding: 3px 6px;
-    border-radius: 4px;
-    flex-shrink: 0;
 }
 
 /* Индикатор для дней с многими задачами */
