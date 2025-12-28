@@ -29,7 +29,11 @@ export default class MonthView {
             }
         }
 
-        monthTasks.sort((a, b) => a.deadline - b.startDate);
+        monthTasks.sort((a, b) => {
+            const durationA = a.deadline - a.startDate; 
+            const durationB = b.deadline - b.startDate;
+            return durationB - durationA; 
+        });
 
         this.renderTasks(monthTasks);
     }

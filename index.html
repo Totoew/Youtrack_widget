@@ -28,10 +28,15 @@
                     </svg>
                 </button>
             </div>
-            
-            <select class="project-select" id="projectSelect">
-                <option></option>
-            </select>
+
+            <div class="filter-group" id="projectSelect">
+                <div class="filter-header" data-target="project">
+                    <span>Проект</span>
+                </div>
+                <div class="filter-options" id="projectOptions">
+
+                </div>
+            </div>
             
             <div class="period-display">Ноябрь 2025</div>
             
@@ -45,27 +50,68 @@
         
         <!-- Панель фильтров -->
         <div class="filters-panel">
-            <select class="filter-select" id="subsystemSelect">
-                <option>Подсистема</option>
-            </select>
-            <select class="filter-select" id="executorSelect">
-                <option>Исполнитель</option>
-            </select>
-            <select class="filter-select" id="typeSelect">
-                <option>Тип</option>
-            </select>
-            <select class="filter-select" id="prioritySelect">
-                <option>Приоритет</option>
-            </select>
-            <select class="filter-select" id="statusSelect">
-                <option>Состояние</option>
-            </select>
-            <select class="filter-select" id="deadlineSelect">
-                <option>Срок</option>
-            </select>
-            <select class="filter-select" id="timeSpentSelect">
-                <option>Затраченное время</option>
-            </select>
+            <div class="filter-group">
+                <div class="filter-header" data-target="subsystem">
+                    <span>Подсистема</span>
+                </div>
+                <div class="filter-options" id="subsystemOptions">
+
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-header" data-target="executor">
+                    <span>Исполнитель</span>
+                </div>
+                <div class="filter-options" id="executorOptions">
+
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-header" data-target="type">
+                    <span>Тип</span>
+                </div>
+                <div class="filter-options" id="typeOptions">
+
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-header" data-target="priority">
+                    <span>Приоритет</span>
+                </div>
+                <div class="filter-options" id="priorityOptions">
+
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-header" data-target="status">
+                    <span>Состояние</span>
+                </div>
+                <div class="filter-options" id="statusOptions">
+
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-header" data-target="deadline">
+                    <span>Срок</span>
+                </div>
+                <div class="filter-options" id="deadlineOptions">
+
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-header" data-target="timeSpent">
+                    <span>Затраченное время</span>
+                </div>
+                <div class="filter-options" id="timeSpentOptions">
+
+                </div>
+            </div>
         </div>
 
         <!-- Контейнер для видов календаря -->

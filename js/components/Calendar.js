@@ -17,14 +17,12 @@ export default class Calendar {
             week: document.getElementById('weekView'),
             day: document.getElementById('dayView')
         };
-        this.projectSelect = document.querySelector('.project-select');
-        this.filterSelects = document.querySelectorAll('.filter-select');
-        this.selectsHeaders = ['Подсистема', 'Исполнитель', 'Тип', 'Приоритет', 'Состояние', 'Срок', 'Затраченное время'];
         
         this.monthView = new MonthView();
         this.weekView = new WeekView();
         this.dayView = new DayView();
 
+        this.projects = {};
         this.projectNames = null;
         this.projectShortNames = null;
         this.projectTasksFields = null;
@@ -47,27 +45,32 @@ export default class Calendar {
         this.projectNames = projectNames;
         this.projectShortNames = projectShortNames;
         
-        await this.findTasks(this.projectShortNames[0]);
+        await this.findTasks(this.projectShortNames);
         this.populateSelects(false);
-
-        this.filterSelects.forEach(select => {
-            select.addEventListener('change', () => this.filterTasks());
-        });
-
-        this.projectSelect.addEventListener('change', async () => await this.changeProject());
+        this.addListeners();
 
         this.filterTasks();
     }
 
-    async findTasks(shortName) {
-        const [tasks, projectTasksFields] = await makeTaskFieldsList(shortName);
+    async findTasks(shortNames) {
+        for (let i = 0; i < shortNames.length; i++) {
+            const [allTasks, projectTasksFields] = await makeTaskFieldsList(shortNames[i]);
+            this.projects[shortNames[i]] = {
+                'allTasks': allTasks,
+                'projectsTasksFields': projectTasksFields
+            };
+        }
+        
+        const [allTasks, projectTasksFields] = this.mergeProjectFields(shortNames);
+        this.allTasks = allTasks;
         this.projectTasksFields = projectTasksFields;
-        this.allTasks = tasks;
     }
 
-    async changeProject() {
-        const value = this.projectSelect.value;
-        await this.findTasks(value);
+    async changeProject(shortNames) {
+        const [allTasks, projectTasksFields] = this.mergeProjectFields(shortNames);
+        this.allTasks = allTasks;
+        this.projectTasksFields = projectTasksFields;
+        
         this.populateSelects(true);
         this.filterTasks();
         this.render();
@@ -106,67 +109,96 @@ export default class Calendar {
 
     populateSelects(isProjectChanging) {
         const selects = {
-            'subsystemSelect': this.projectTasksFields.subsystems,
-            'executorSelect': this.projectTasksFields.executors,
-            'typeSelect': this.projectTasksFields.types,
-            'prioritySelect': this.projectTasksFields.priorities,
-            'statusSelect': this.projectTasksFields.statuses,
-            'deadlineSelect': this.projectTasksFields.deadlines,
-            'timeSpentSelect': this.projectTasksFields.timeSpent
+            'subsystem': this.projectTasksFields.subsystems,
+            'executor': this.projectTasksFields.executors,
+            'type': this.projectTasksFields.types,
+            'priority': this.projectTasksFields.priorities,
+            'status': this.projectTasksFields.statuses,
+            'deadline': this.projectTasksFields.deadlines,
+            'timeSpent': this.projectTasksFields.timeSpent
         };
         if (!isProjectChanging) {
-            selects['projectSelect'] = this.projectNames;
+            selects['project'] = this.projectNames;
         }
 
-        Object.keys(selects).forEach(selectId => {
-            const select = document.getElementById(selectId);
-            if (select) {
-                const childrenCount = selectId === 'projectSelect' ? 0 : 1;
-                while (select.children.length > childrenCount) {
-                    select.removeChild(select.lastChild);
-                }
+        for (const [filterId, options] of Object.entries(selects)) {
+            const container = document.getElementById(`${filterId}Options`);
+            if (!container) continue;
+            if (!options) continue;
+            
+            container.innerHTML = options.map(option => `
+                <div class="option-item">
+                    <input type="checkbox" 
+                        id="${filterId}_${option}" 
+                        value="${filterId === 'project' ? this.projectShortNames[this.projectNames.indexOf(option)] : option}"
+                        data-filter="${filterId}">
+                    <label for="${filterId}_${option}">${option}</label>
+                </div>
+            `).join('');
+        }
+    }
+
+    addListeners() {
+        // Открытие/закрытие фильтров
+        document.querySelectorAll('.filter-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                const group = header.parentElement;
+                group.classList.toggle('active');
                 
-                selects[selectId].forEach(item => {
-                    const option = document.createElement('option');
-                    if (selectId === 'projectSelect') {
-                        option.value = this.projectShortNames[this.projectNames.indexOf(item)];
+                // Закрываем другие открытые фильтры
+                document.querySelectorAll('.filter-group').forEach(otherGroup => {
+                    if (otherGroup !== group && otherGroup.classList.contains('active')) {
+                        otherGroup.classList.remove('active');
                     }
-                    option.textContent = item;
-                    select.appendChild(option);
                 });
+            });
+        });
+
+        // Закрытие фильтров при клике вне их
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-group')) {
+                document.querySelectorAll('.filter-group').forEach(group => {
+                    group.classList.remove('active');
+                });
+            }
+        });
+
+        let debounceTimer;
+        document.addEventListener('change', (e) => {
+            if (e.target.type === 'checkbox') {
+                const filterName = e.target.closest('.filter-options').id.replace('Options', '');
+
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(async () => {}, 300);
+
+                const checkedValues = Array.from(
+                    document.querySelectorAll(`#${filterName}Options input:checked`)
+                ).map(cb => cb.value);
+                    
+                if (filterName !== 'project') {
+                    this.filterTasks(filterName, checkedValues);
+                } else {
+                    this.changeProject(checkedValues);
+                }
             }
         });
     }
 
-    filterTasks() {
-        const filteredFields = {};
+    filterTasks(filterName = '', checkedValues = []) {
         this.filteredTasks = [];
 
-        this.filterSelects.forEach(select => {
-            if (!this.selectsHeaders.includes(select.value)) {
-                filteredFields[select.id.replace('Select', '')] = select.value;
-            }
-        });
-
-        if (Object.keys(filteredFields).length !== 0) {
+        if (filterName) {
             for (let i = 0; i < this.allTasks.length; i++) {
                 let isFiltersMatching = false;
                 const task = this.allTasks[i];
-                for (const [key, value] of Object.entries(filteredFields)) {
-                    if (key === 'deadline') {
-                        const deadline = task.deadline;
-                        isFiltersMatching = this.filterDeadline(deadline, value);
-                    } else if (key === 'timeSpent') {
-                        const timeSpent = task.timeSpent;
-                        isFiltersMatching = this.filterTimeSpent(timeSpent, value);
-                    }
-                    else {
-                        isFiltersMatching = task[key] === value;
-                    }
-                    if (!isFiltersMatching) break;
+                if (filterName === 'deadline') {
+                    isFiltersMatching = this.filterDeadline(task.deadline, checkedValues);
+                } else if (filterName === 'timeSpent') {
+                    isFiltersMatching = this.filterTimeSpent(task.timeSpent, checkedValues);
+                } else {
+                    isFiltersMatching = task[filterName] === null ? checkedValues.includes('Не указано') : checkedValues.includes(task[filterName]);
                 }
-                if (!isFiltersMatching) continue; 
-                this.filteredTasks.push(task);
+                if (isFiltersMatching) this.filteredTasks.push(task);
             }
         } else {
             this.filteredTasks = this.allTasks;
@@ -185,7 +217,7 @@ export default class Calendar {
         }
     }
 
-    filterDeadline(deadline, value) {
+    filterDeadline(deadline, values) {
         const currentDate = new Date();
 
         const getWeek = (date) => {
@@ -199,56 +231,94 @@ export default class Calendar {
 
         let isFilterMatching = false;
 
-        switch (value) {
-            case 'Вышел':
-                isFilterMatching = currentDate.setHours(0, 0, 0, 0) > deadline.setHours(0, 0, 0, 0);
-                break;
-            case 'Сегодня':
-                isFilterMatching = deadline.toLocaleDateString() === currentDate.toLocaleDateString();
-                break;
-            case 'Завтра':
-                isFilterMatching = (Math.abs(currentDate.setHours(0, 0, 0, 0) - deadline.setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)) === 1;
-                break;
-            case 'На этой неделе':
-                isFilterMatching = getWeek(deadline) === getWeek(currentDate);
-                break;
-            case 'На следующей неделе':
-                const deadlineResult = getWeek(deadline).split('W');
-                const currentResult = getWeek(currentDate).split('W');
-                isFilterMatching = deadlineResult[0] === currentResult[0] && Number(currentResult[1]) === Number(deadlineResult[1]) - 1;
-                break;
-            case 'В этом месяце':
-                isFilterMatching = deadline.toLocaleDateString().slice(3) === currentDate.toLocaleDateString().slice(3);
-                break
-            default:
-                break;
+        for (let i = 0; i < values.length; i++) {
+            const value = values[i];
+            switch (value) {
+                case 'Вышел':
+                    isFilterMatching = currentDate.setHours(0, 0, 0, 0) > deadline.setHours(0, 0, 0, 0);
+                    break;
+                case 'Сегодня':
+                    isFilterMatching = deadline.toLocaleDateString() === currentDate.toLocaleDateString();
+                    break;
+                case 'Завтра':
+                    isFilterMatching = (Math.abs(currentDate.setHours(0, 0, 0, 0) - deadline.setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)) === 1;
+                    break;
+                case 'На этой неделе':
+                    isFilterMatching = getWeek(deadline) === getWeek(currentDate);
+                    break;
+                case 'На следующей неделе':
+                    const deadlineResult = getWeek(deadline).split('W');
+                    const currentResult = getWeek(currentDate).split('W');
+                    isFilterMatching = deadlineResult[0] === currentResult[0] && Number(currentResult[1]) === Number(deadlineResult[1]) - 1;
+                    break;
+                case 'В этом месяце':
+                    isFilterMatching = deadline.toLocaleDateString().slice(3) === currentDate.toLocaleDateString().slice(3);
+                    break
+                default:
+                    break;
+            }
         }
 
         return isFilterMatching;
     }
 
-    filterTimeSpent(timeSpent, value) {
+    filterTimeSpent(timeSpent, values) {
         let isFilterMatching = false;
-        if (value === 'Не указано') {
-            isFilterMatching = timeSpent === null;
-        }
-        else if (timeSpent !== null) {
-            const times = timeSpent.split(' ');
-            let hours = 0;
-            for (let i = 0; i < times.length; i++) {
-                const time = times[i];
-                if (time.includes('н')) hours += Number(time.replace('н', '')) * 40;
-                else if (time.includes('д')) hours += Number(time.replace('д', '')) * 8;
-                else if (time.includes('ч')) hours += Number(time.replace('ч', ''));
-            }
 
-            if (value === 'Меньше суток') isFilterMatching = hours <= 8;
-            else if (value === 'От 1 до 3 дней') isFilterMatching = 8 < hours && hours <= 24;
-            else if (value === 'От 3 до 10 дней') isFilterMatching = 24 < hours && hours < 64;
-            else if (value === 'От 10 дней до месяца') isFilterMatching = 64 < hours && hours <= 160;
-            else if (value === 'Больше месяца') isFilterMatching = 160 < hours;
+        for (let i = 0; i < values.length; i++) {
+            const value = values[i];
+
+            if (value === 'Не указано') {
+                isFilterMatching = timeSpent === null;
+            }
+            else if (timeSpent !== null) {
+                const times = timeSpent.split(' ');
+                let hours = 0;
+                for (let i = 0; i < times.length; i++) {
+                    const time = times[i];
+                    if (time.includes('н')) hours += Number(time.replace('н', '')) * 40;
+                    else if (time.includes('д')) hours += Number(time.replace('д', '')) * 8;
+                    else if (time.includes('ч')) hours += Number(time.replace('ч', ''));
+                }
+
+                if (value === 'Меньше суток') isFilterMatching = hours <= 8;
+                else if (value === 'От 1 до 3 дней') isFilterMatching = 8 < hours && hours <= 24;
+                else if (value === 'От 3 до 10 дней') isFilterMatching = 24 < hours && hours < 64;
+                else if (value === 'От 10 дней до месяца') isFilterMatching = 64 < hours && hours <= 160;
+                else if (value === 'Больше месяца') isFilterMatching = 160 < hours;
+            }
         } 
+
         return isFilterMatching;
+    }
+
+    mergeProjectFields(shortNames) {
+        const mergeAsSet = (obj1, obj2) => {
+            const result = {};
+            Object.keys(obj2).forEach(key => {
+                if (Array.isArray(obj1[key]) && Array.isArray(obj2[key])) {
+                    result[key] = [...new Set([...obj1[key], ...obj2[key]])];
+                } 
+            });
+            return result;
+        };
+
+        let allTasks = [];
+        let projectsTasksFields = {};
+
+        if (shortNames.length > 0) {
+            allTasks = this.projects[shortNames[0]].allTasks;
+            projectsTasksFields = this.projects[shortNames[0]].projectsTasksFields;
+
+            if (shortNames.length > 1) {
+                for (let i = 1; i < shortNames.length; i++) {
+                    allTasks = [...allTasks, ...this.projects[shortNames[i]].allTasks];
+                    projectsTasksFields = mergeAsSet(projectsTasksFields, this.projects[shortNames[i]].projectsTasksFields);
+                }
+            }
+        } 
+
+        return [allTasks, projectsTasksFields];
     }
 
     updatePeriodDisplay() {

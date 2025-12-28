@@ -29,23 +29,22 @@ async function makeProjectsList() {
 
 // Функция для создания списков фильтров
 async function makeTaskFieldsList(shortName) {
-    const tasks = await fetchTasks(shortName);
-    const tasksLength = tasks.length;
-
     const subsystems = new Set();
     const executors = new Set();
     const types = new Set();
     const priorities = new Set();
     const statuses = new Set();
 
-    for (let i = 0; i < tasksLength; i++) {
+    const tasks = await fetchTasks(shortName);
+
+    for (let i = 0; i < tasks.length; i++) {
         const task = tasks[i];
 
-        if (task.subsystem != null) subsystems.add(task.subsystem);
-        if (task.executor != null) executors.add(task.executor);
-        if (task.type != null) types.add(task.type);
-        if (task.priority != null) priorities.add(task.priority);
-        if (task.status != null) statuses.add(task.status);
+        task.subsystem === null ? subsystems.add('Не указано') : subsystems.add(task.subsystem);
+        task.executor === null ? executors.add('Не указано') : executors.add(task.executor);
+        task.type === null ? types.add('Не указано') : types.add(task.type);
+        task.priority === null ? priorities.add('Не указано') : priorities.add(task.priority);
+        task.status === null ? statuses.add('Не указано') : statuses.add(task.status);
     }
 
     const taskFieldsList = {
